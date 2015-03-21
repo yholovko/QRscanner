@@ -6,18 +6,32 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.text.InputType;
 import android.text.format.Time;
 import android.view.Menu;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements View.OnClickListener {
     private static final String ACTION_SCAN = "com.google.zxing.client.android.SCAN";
+
     private AlertDialog.Builder builder;
+
+    private GPSTracker gps;
+    private double latitude;
+    private double longitude;
+
     private TextView tvDate;
     private TextView tvTime;
     private TextView tvContentName;
@@ -25,10 +39,19 @@ public class MainActivity extends Activity {
     private TextView tvLatitude;
     private TextView tvLongitude;
 
+    private Button btnSendSms;
+    private Button btnSendToServer;
+    private Button btnScan;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        gps = new GPSTracker(MainActivity.this);
+        if (!gps.canGetLocation()){
+            gps.showSettingsAlert();
+        }
 
         tvDate = (TextView) findViewById(R.id.textViewDate);
         tvTime = (TextView) findViewById(R.id.textViewTime);
@@ -36,10 +59,34 @@ public class MainActivity extends Activity {
         tvPhoneNumber = (TextView) findViewById(R.id.textViewPhoneNumber);
         tvLatitude = (TextView) findViewById(R.id.textViewLatitude);
         tvLongitude = (TextView) findViewById(R.id.textViewLongitude);
+        btnScan = (Button) findViewById(R.id.buttonScan);
+        btnSendSms = (Button) findViewById(R.id.buttonSendSms);
+        btnSendToServer = (Button) findViewById(R.id.buttonSendToServer);
 
-        scanQR();
+        btnScan.setOnClickListener(this);
+        btnSendSms.setOnClickListener(this);
+        btnSendToServer.setOnClickListener(this);
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.buttonScan:
+                scanQR();
+                break;
+            case R.id.buttonSendSms:
+//                sendSms(tvPhoneNumber.getText().toString(),
+//                        String.format("http://maps.google.com/maps?q=%s,%s",
+//                                       tvLatitude.getText().toString(),
+//                                       tvLongitude.getText().toString()
+//                        )
+//                );
+                System.out.println(String.format("http://maps.google.com/maps?q=%s,%s",tvLatitude.getText().toString(), tvLongitude.getText().toString()));
+                break;
+            case R.id.buttonSendToServer:
+                break;
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -53,13 +100,21 @@ public class MainActivity extends Activity {
                 //date, time , mobile number, location
                 Time now = new Time();
                 now.setToNow();
+                btnSendSms.setEnabled(true);
+                btnSendToServer.setEnabled(true);
 
-                tvDate.setText(now.monthDay+":"+now.month+":"+now.year);
+                tvDate.setText(now.monthDay+":"+(now.month+1)+":"+now.year);
                 tvTime.setText(now.hour+":"+now.minute+":"+now.second);
                 tvContentName.setText(intent.getStringExtra("SCAN_RESULT"));
                 tvPhoneNumber.setText(getUserTelephoneNumber());
-                tvLatitude.setText("");
-                tvLongitude.setText("");
+
+                if(gps.canGetLocation()) {
+                    latitude = gps.getLatitude();
+                    longitude = gps.getLongitude();
+//                    Toast.makeText(getApplicationContext(), "Your Location is -\nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
+                }
+                tvLatitude.setText(String.valueOf(latitude));
+                tvLongitude.setText(String.valueOf(longitude));
             }
         }
     }
@@ -71,6 +126,17 @@ public class MainActivity extends Activity {
             startActivityForResult(intent, 0);
         } catch (ActivityNotFoundException anfe) {
             showDialog(MainActivity.this, "No Scanner Found", "Download a scanner code activity?", "Yes", "No").show();
+        }
+    }
+
+    private void sendSms(String phone, String message){
+        try {
+            SmsManager smsManager = SmsManager.getDefault();
+            smsManager.sendTextMessage(phone, null, message, null, null);
+            Toast.makeText(getApplicationContext(), "SMS sent", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
+            e.printStackTrace();
         }
     }
 
@@ -109,6 +175,7 @@ public class MainActivity extends Activity {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.cancel();
+                    finish();
                 }
             });
 
@@ -122,7 +189,7 @@ public class MainActivity extends Activity {
     }
 
     //alert dialog for downloadDialog
-    private static AlertDialog showDialog(final Activity act, CharSequence title, CharSequence message, CharSequence buttonYes, CharSequence buttonNo) {
+    private AlertDialog showDialog(final Activity act, CharSequence title, CharSequence message, CharSequence buttonYes, CharSequence buttonNo) {
         AlertDialog.Builder downloadDialog = new AlertDialog.Builder(act);
         downloadDialog.setTitle(title);
         downloadDialog.setMessage(message);
@@ -139,7 +206,7 @@ public class MainActivity extends Activity {
         });
         downloadDialog.setNegativeButton(buttonNo, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialogInterface, int i) {
-
+                finish();
             }
         });
 
