@@ -2,10 +2,14 @@ package com.elance.qrscanner;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -75,15 +79,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 scanQR();
                 break;
             case R.id.buttonSendSms:
-//                sendSms(tvPhoneNumber.getText().toString(),
-//                        String.format("http://maps.google.com/maps?q=%s,%s",
-//                                       tvLatitude.getText().toString(),
-//                                       tvLongitude.getText().toString()
-//                        )
-//                );
-                System.out.println(String.format("http://maps.google.com/maps?q=%s,%s",tvLatitude.getText().toString(), tvLongitude.getText().toString()));
+                String googleMapsLink = String.format("http://maps.google.com/maps?q=%s,%s", tvLatitude.getText().toString(), tvLongitude.getText().toString());
+                String messageContent = String.format("Abbiamo controllato il tuo negozio sito in %s " +
+                                                      "il giorno %s " +
+                                                      "alle ore %s.", googleMapsLink, tvDate.getText().toString(), tvTime.getText().toString());
+                sendSMS(extractPhoneFromContent(tvContentName.getText().toString()), messageContent);
                 break;
             case R.id.buttonSendToServer:
+
                 break;
         }
     }
@@ -129,15 +132,21 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
     }
 
-    private void sendSms(String phone, String message){
-        try {
-            SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage(phone, null, message, null, null);
-            Toast.makeText(getApplicationContext(), "SMS sent", Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
-            e.printStackTrace();
+    private String extractPhoneFromContent(String content){
+        if (content.startsWith("SMSTO:")){
+            return content.replace("SMSTO:)","").replace(":","").trim();
+        }else {
+            return content;
         }
+    }
+
+    private void sendSMS(final String phoneNumber, String message) {
+        String SENT = "SMS_SENT";
+        PendingIntent sentPI = PendingIntent.getBroadcast(this, 0, new Intent(SENT), 0);
+
+        SmsManager sms = SmsManager.getDefault();
+        sms.sendTextMessage(phoneNumber, null, message, sentPI, null);
+        Toast.makeText(getBaseContext(), "SMS sent", Toast.LENGTH_SHORT).show();
     }
 
     private String getUserTelephoneNumber(){

@@ -25,8 +25,8 @@ public class GPSTracker extends Service implements LocationListener{
 	double latitude;
 	double longitude;
 	
-	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1;
-	private static final long MIN_TIME_BW_UPDATES = 10;
+	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0;
+	private static final long MIN_TIME_BW_UPDATES = 0;
 	
 	protected LocationManager locationManager;
 	
@@ -150,8 +150,8 @@ public class GPSTracker extends Service implements LocationListener{
 	@Override
 	public void onLocationChanged(Location arg0) {
 		// TODO Auto-generated method stub
-		
-	}
+        System.out.println();
+    }
 
 	@Override
 	public void onProviderDisabled(String arg0) {
