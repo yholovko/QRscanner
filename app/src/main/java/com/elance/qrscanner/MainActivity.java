@@ -27,8 +27,24 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 public class MainActivity extends Activity implements View.OnClickListener {
     private static final String ACTION_SCAN = "com.google.zxing.client.android.SCAN";
+    private final String SERVER_URL = "http://test.ggcom.it/getInfo.php";
+    //private final String SERVER_URL = "http://dku-admin.com.ua/extLogin";
 
     private AlertDialog.Builder builder;
 
@@ -80,12 +96,27 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.buttonSendSms:
                 String googleMapsLink = String.format("http://maps.google.com/maps?q=%s,%s", tvLatitude.getText().toString(), tvLongitude.getText().toString());
-                String messageContent = String.format("Abbiamo controllato il tuo negozio sito in %s " +
+                String messageContent = String.format("Ho controllato il tuo negozio sito in %s " +
                                                       "il giorno %s " +
-                                                      "alle ore %s.", googleMapsLink, tvDate.getText().toString(), tvTime.getText().toString());
+                                                      "alle ore %s.Cordiali saluti Vigilantes ltd", googleMapsLink, tvDate.getText().toString(), tvTime.getText().toString());
                 sendSMS(extractPhoneFromContent(tvContentName.getText().toString()), messageContent);
                 break;
             case R.id.buttonSendToServer:
+                //http://test.ggcom.it/getInfo.php/?date=19.03.2015&time=1:05&phonenumber=380964556722&latitude=123&longitude=456
+                try {
+                    String response = new AsyncPostRequest(SERVER_URL, CodeRequestManager.securityDataRequest(tvDate.getText().toString(), tvTime.getText().toString(),
+                                                                tvPhoneNumber.getText().toString(), tvLatitude.getText().toString(), tvLongitude.getText().toString()))
+                            .execute()
+                            .get(29, TimeUnit.SECONDS);
+
+                    JSONObject jsonResponse = new JSONObject(response);
+//                    String result = jsonResponse.getString("result");
+//                    if (result.equals("success")){
+//                        Toast.makeText(getBaseContext(), "Information sent", Toast.LENGTH_SHORT).show();
+//                    }
+                } catch (InterruptedException | ExecutionException | JSONException | TimeoutException e) {
+                    e.printStackTrace();
+                }
 
                 break;
         }
