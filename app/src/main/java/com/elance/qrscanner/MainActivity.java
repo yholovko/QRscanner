@@ -44,7 +44,6 @@ import java.util.concurrent.TimeoutException;
 public class MainActivity extends Activity implements View.OnClickListener {
     private static final String ACTION_SCAN = "com.google.zxing.client.android.SCAN";
     private final String SERVER_URL = "http://test.ggcom.it/getInfo.php";
-    //private final String SERVER_URL = "http://dku-admin.com.ua/extLogin";
 
     private AlertDialog.Builder builder;
 
@@ -55,7 +54,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private TextView tvDate;
     private TextView tvTime;
     private TextView tvContentName;
-    private TextView tvPhoneNumber;
     private TextView tvLatitude;
     private TextView tvLongitude;
 
@@ -76,7 +74,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         tvDate = (TextView) findViewById(R.id.textViewDate);
         tvTime = (TextView) findViewById(R.id.textViewTime);
         tvContentName = (TextView) findViewById(R.id.textViewContentName);
-        tvPhoneNumber = (TextView) findViewById(R.id.textViewPhoneNumber);
         tvLatitude = (TextView) findViewById(R.id.textViewLatitude);
         tvLongitude = (TextView) findViewById(R.id.textViewLongitude);
         btnScan = (Button) findViewById(R.id.buttonScan);
@@ -105,7 +102,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 //http://test.ggcom.it/getInfo.php/?date=19.03.2015&time=1:05&phonenumber=380964556722&latitude=123&longitude=456
                 try {
                     String response = new AsyncPostRequest(SERVER_URL, CodeRequestManager.securityDataRequest(tvDate.getText().toString(), tvTime.getText().toString(),
-                                                                tvPhoneNumber.getText().toString(), tvLatitude.getText().toString(), tvLongitude.getText().toString()))
+                                                                tvLatitude.getText().toString(), tvLongitude.getText().toString()))
                             .execute()
                             .get(29, TimeUnit.SECONDS);
 
@@ -140,7 +137,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 tvDate.setText(now.monthDay+":"+(now.month+1)+":"+now.year);
                 tvTime.setText(now.hour+":"+now.minute+":"+now.second);
                 tvContentName.setText(intent.getStringExtra("SCAN_RESULT"));
-                tvPhoneNumber.setText(getUserTelephoneNumber());
 
                 if(gps.canGetLocation()) {
                     latitude = gps.getLatitude();
@@ -178,54 +174,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         SmsManager sms = SmsManager.getDefault();
         sms.sendTextMessage(phoneNumber, null, message, sentPI, null);
         Toast.makeText(getBaseContext(), "SMS sent", Toast.LENGTH_SHORT).show();
-    }
-
-    private String getUserTelephoneNumber(){
-        String mPhoneNumber = null;
-        final String[] mTempNumber = {""};
-
-        if (builder != null)
-            return "";
-
-        try {
-            TelephonyManager tMgr = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
-            mPhoneNumber = tMgr.getLine1Number();
-        }catch (Exception e){
-        }
-
-        if (mPhoneNumber == null || mPhoneNumber.equals("")){
-            builder = new AlertDialog.Builder(this);
-            builder.setTitle("Enter your phone number");
-
-            final EditText input = new EditText(this);
-            input.setInputType(InputType.TYPE_CLASS_PHONE);
-            builder.setView(input);
-
-            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    mTempNumber[0] = input.getText().toString();
-                    //check template
-                    //save in preferences
-                    tvPhoneNumber.setText(mTempNumber[0]);
-                }
-            });
-
-            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.cancel();
-                    finish();
-                }
-            });
-
-
-            builder.show();
-
-            return mTempNumber[0];
-        }else {
-            return mPhoneNumber;
-        }
     }
 
     //alert dialog for downloadDialog

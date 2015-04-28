@@ -5,12 +5,11 @@ import java.util.Map;
 
 public class CodeRequestManager {
 
-    public static Map<String, String> securityDataRequest(String date, String time, String phoneNumber, String latitude, String longitude) {
+    public static Map<String, String> securityDataRequest(String date, String time, String latitude, String longitude) {
         Map<String, String> dataRequest = new HashMap<>();
 
         dataRequest.put("date", date);
         dataRequest.put("time", time);
-        dataRequest.put("phonenumber", phoneNumber);
         dataRequest.put("latitude", latitude);
         dataRequest.put("longitude", longitude);
 
