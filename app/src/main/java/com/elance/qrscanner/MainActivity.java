@@ -43,7 +43,8 @@ import java.util.concurrent.TimeoutException;
 
 public class MainActivity extends Activity implements View.OnClickListener {
     private static final String ACTION_SCAN = "com.google.zxing.client.android.SCAN";
-    private final String SERVER_URL = "http://test.ggcom.it/getInfo.php";
+    private final String SERVER_URL = "http://test.ggcom.it";
+    private final String ADD_DATA = "/addData";
 
     private AlertDialog.Builder builder;
 
@@ -66,7 +67,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        gps = new GPSTracker(MainActivity.this);
+        gps = new GPSTracker(MainActivity.this, this);
         if (!gps.canGetLocation()){
             gps.showSettingsAlert();
         }
@@ -99,10 +100,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 sendSMS(extractPhoneFromContent(tvContentName.getText().toString()), messageContent);
                 break;
             case R.id.buttonSendToServer:
-                //http://test.ggcom.it/getInfo.php/?date=19.03.2015&time=1:05&phonenumber=380964556722&latitude=123&longitude=456
                 try {
-                    String response = new AsyncPostRequest(SERVER_URL, CodeRequestManager.securityDataRequest(tvDate.getText().toString(), tvTime.getText().toString(),
-                                                                tvLatitude.getText().toString(), tvLongitude.getText().toString()))
+                    String response = new AsyncPostRequest(SERVER_URL + ADD_DATA, CodeRequestManager.addData(tvDate.getText().toString(), tvTime.getText().toString(),
+                            tvLatitude.getText().toString(), tvLongitude.getText().toString()))
                             .execute()
                             .get(29, TimeUnit.SECONDS);
 
@@ -128,21 +128,21 @@ public class MainActivity extends Activity implements View.OnClickListener {
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if (requestCode == 0) {
             if (resultCode == RESULT_OK) {
-                //date, time , mobile number, location
+                //date, time , latitude, longitude, id_customer
                 Time now = new Time();
                 now.setToNow();
                 btnSendSms.setEnabled(true);
                 btnSendToServer.setEnabled(true);
 
-                tvDate.setText(now.monthDay+":"+(now.month+1)+":"+now.year);
+                tvDate.setText(now.year + ":" + (now.month+1) + ":" + now.monthDay);
                 tvTime.setText(now.hour+":"+now.minute+":"+now.second);
                 tvContentName.setText(intent.getStringExtra("SCAN_RESULT"));
 
                 if(gps.canGetLocation()) {
                     latitude = gps.getLatitude();
                     longitude = gps.getLongitude();
-//                    Toast.makeText(getApplicationContext(), "Your Location is -\nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
                 }
+
                 tvLatitude.setText(String.valueOf(latitude));
                 tvLongitude.setText(String.valueOf(longitude));
             }
@@ -173,13 +173,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         SmsManager sms = SmsManager.getDefault();
         sms.sendTextMessage(phoneNumber, null, message, sentPI, null);
-        Toast.makeText(getBaseContext(), "SMS sent", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getBaseContext(), "SMS inviato", Toast.LENGTH_SHORT).show();
     }
 
     //alert dialog for downloadDialog
     private AlertDialog showDialog(final Activity act, CharSequence title, CharSequence message, CharSequence buttonYes, CharSequence buttonNo) {
         AlertDialog.Builder downloadDialog = new AlertDialog.Builder(act);
         downloadDialog.setTitle(title);
+        downloadDialog.setCancelable(false);
         downloadDialog.setMessage(message);
         downloadDialog.setPositiveButton(buttonYes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialogInterface, int i) {

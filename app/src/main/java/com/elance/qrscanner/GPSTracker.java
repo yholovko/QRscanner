@@ -15,7 +15,8 @@ import android.provider.Settings;
 public class GPSTracker extends Service implements LocationListener{
 
 	private final Context context;
-	
+	private final MainActivity maThis;
+
 	boolean isGPSEnabled = false;
 	boolean isNetworkEnabled = false;
 	boolean canGetLocation = false;
@@ -30,8 +31,9 @@ public class GPSTracker extends Service implements LocationListener{
 	
 	protected LocationManager locationManager;
 	
-	public GPSTracker(Context context) {
+	public GPSTracker(Context context, MainActivity maThis) {
 		this.context = context;
+		this.maThis = maThis;
 		getLocation();
 	}
 	
@@ -124,7 +126,7 @@ public class GPSTracker extends Service implements LocationListener{
 		AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
 		
 		alertDialog.setTitle("GPS is settings");
-		
+		alertDialog.setCancelable(false);
 		alertDialog.setMessage("GPS is not enabled. Do you want to go to settings menu?");
 		
 		alertDialog.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
@@ -141,6 +143,7 @@ public class GPSTracker extends Service implements LocationListener{
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				dialog.cancel();
+				maThis.finish();
 			}
 		});
 		

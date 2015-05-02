@@ -22,7 +22,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:text="Date: "
+                android:text="@string/date"
                 android:textColor="@color/bright_foreground_material_light"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -41,7 +41,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:text="Time: "
+                android:text="@string/time"
                 android:textColor="@color/bright_foreground_material_light"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -60,7 +60,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:text="QR content: "
+                android:text="@string/qrcontent"
                 android:textColor="@color/bright_foreground_material_light"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -78,7 +78,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <TextView
-                android:text="Latitude: "
+                android:text="@string/latitude"
                 android:textColor="@color/bright_foreground_material_light"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -96,7 +96,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <TextView
-                android:text="Longitude: "
+                android:text="@string/longitude"
                 android:textColor="@color/bright_foreground_material_light"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -135,14 +135,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:enabled="false"
-            android:text="Send SMS"
+            android:text="@string/sendSms"
             android:id="@+id/buttonSendSms" />
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:enabled="false"
-            android:text="Send info to server"
+            android:text="@string/sendToServer"
             android:id="@+id/buttonSendToServer" />
     </LinearLayout>
 
