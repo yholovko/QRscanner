@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class License {
-    public static void check(final MainActivity mainActivity){
+    public static void check(final MainActivity mainActivity) {
         SharedPreferences sharedPref = mainActivity.getPreferences(Context.MODE_PRIVATE);
         boolean isActivated = sharedPref.getBoolean(Constants.LICENSE, false);
 
@@ -29,11 +29,11 @@ public class License {
         input.setInputType(InputType.TYPE_CLASS_TEXT);
 
         final AlertDialog builder = new AlertDialog.Builder(mainActivity)
-            .setTitle("Inserisci il codice di licenza")
-            .setCancelable(false)
-            .setView(input)
-            .setPositiveButton("Verificare", null)
-            .create();
+                .setTitle("Inserisci il codice di licenza")
+                .setCancelable(false)
+                .setView(input)
+                .setPositiveButton("Verificare", null)
+                .create();
 
         builder.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
@@ -41,31 +41,39 @@ public class License {
                 Button b = builder.getButton(AlertDialog.BUTTON_POSITIVE);
 
                 b.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        try {
-                            String response = new AsyncPostRequest(Constants.SERVER_URL + Constants.CHECK_LICENSE, CodeRequestManager.checkLicense(input.getText().toString()))
-                                    .execute()
-                                    .get(29, TimeUnit.SECONDS);
+                                         @Override
+                                         public void onClick(View v) {
+                                             try {
+                                                 if (Internet.isAvailable(mainActivity)) {
+                                                     String response = new AsyncPostRequest(Constants.SERVER_URL + Constants.CHECK_LICENSE, CodeRequestManager.checkLicense(input.getText().toString()))
+                                                             .execute()
+                                                             .get(29, TimeUnit.SECONDS);
 
-                            JSONObject jsonResponse = new JSONObject(response);
+                                                     JSONObject jsonResponse = new JSONObject(response);
 
-                            int result = jsonResponse.getInt("result");
+                                                     int result = jsonResponse.getInt("result");
 
-                            if (result == 1) {
-                                SharedPreferences sharedPref = mainActivity.getPreferences(Context.MODE_PRIVATE);
-                                SharedPreferences.Editor editor = sharedPref.edit();
-                                editor.putBoolean(Constants.LICENSE, true);
-                                editor.commit();
-                                builder.dismiss();
-                            } else {
-                                Toast.makeText(mainActivity.getBaseContext(), "Scorretto", Toast.LENGTH_SHORT).show();
-                            }
-                        }catch (InterruptedException | ExecutionException | JSONException | TimeoutException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
+                                                     if (result == 1) {
+                                                         SharedPreferences sharedPref = mainActivity.getPreferences(Context.MODE_PRIVATE);
+                                                         SharedPreferences.Editor editor = sharedPref.edit();
+                                                         editor.putBoolean(Constants.LICENSE, true);
+                                                         editor.commit();
+                                                         builder.dismiss();
+                                                     } else {
+                                                         Toast.makeText(mainActivity.getBaseContext(), "Scorretto", Toast.LENGTH_SHORT).show();
+                                                     }
+                                                 }
+                                             } catch (InterruptedException | ExecutionException | JSONException |
+                                                     TimeoutException e
+                                                     )
+
+                                             {
+                                                 e.printStackTrace();
+                                             }
+                                         }
+                                     }
+
+                );
             }
         });
 

@@ -1,6 +1,7 @@
 package com.elance.qrscanner;
 
 import android.os.AsyncTask;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;

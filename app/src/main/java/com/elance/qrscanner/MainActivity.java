@@ -49,7 +49,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         License.check(this);
 
         gps = new GPSTracker(MainActivity.this, this);
-        if (!gps.canGetLocation()){
+        if (!gps.canGetLocation()) {
             gps.showSettingsAlert();
         }
 
@@ -76,22 +76,24 @@ public class MainActivity extends Activity implements View.OnClickListener {
             case R.id.buttonSendSms:
                 String googleMapsLink = String.format("http://maps.google.com/maps?q=%s,%s", tvLatitude.getText().toString(), tvLongitude.getText().toString());
                 String messageContent = String.format("Ho controllato il tuo negozio sito in %s il giorno %s alle ore %s.Cordiali saluti %s",
-                                        googleMapsLink, tvDate.getText().toString(), tvTime.getText().toString(), customer.second.toString());
+                        googleMapsLink, tvDate.getText().toString(), tvTime.getText().toString(), customer.second.toString());
                 sendSMS(tvContentName.getText().toString(), messageContent);
                 btnSendSms.setEnabled(false);
                 break;
             case R.id.buttonSendToServer:
                 try {
-                    String response = new AsyncPostRequest(Constants.SERVER_URL + Constants.ADD_DATA, CodeRequestManager.addData(tvDate.getText().toString(), tvTime.getText().toString(),
-                            tvLatitude.getText().toString(), tvLongitude.getText().toString(), customer.first.toString()))
-                            .execute()
-                            .get(29, TimeUnit.SECONDS);
+                    if (Internet.isAvailable(this)) {
+                        String response = new AsyncPostRequest(Constants.SERVER_URL + Constants.ADD_DATA, CodeRequestManager.addData(tvDate.getText().toString(), tvTime.getText().toString(),
+                                tvLatitude.getText().toString(), tvLongitude.getText().toString(), customer.first.toString()))
+                                .execute()
+                                .get(29, TimeUnit.SECONDS);
 
-                    JSONObject jsonResponse = new JSONObject(response);
-                    int result = jsonResponse.getInt("result");
-                    if (result == 1){
-                        Toast.makeText(getBaseContext(), "Informazioni inviate", Toast.LENGTH_SHORT).show();
-                        btnSendToServer.setEnabled(false);
+                        JSONObject jsonResponse = new JSONObject(response);
+                        int result = jsonResponse.getInt("result");
+                        if (result == 1) {
+                            Toast.makeText(getBaseContext(), "Informazioni inviate", Toast.LENGTH_SHORT).show();
+                            btnSendToServer.setEnabled(false);
+                        }
                     }
                 } catch (InterruptedException | ExecutionException | JSONException | TimeoutException e) {
                     e.printStackTrace();
@@ -116,11 +118,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 btnSendSms.setEnabled(true);
                 btnSendToServer.setEnabled(true);
 
-                tvDate.setText(now.year + ":" + (now.month+1) + ":" + now.monthDay);
-                tvTime.setText(now.hour+":"+now.minute+":"+now.second);
+                tvDate.setText(now.year + ":" + (now.month + 1) + ":" + now.monthDay);
+                tvTime.setText(now.hour + ":" + now.minute + ":" + now.second);
                 tvContentName.setText(extractPhoneFromContent(intent.getStringExtra("SCAN_RESULT")));
 
-                if(gps.canGetLocation()) {
+                if (gps.canGetLocation()) {
                     latitude = gps.getLatitude();
                     longitude = gps.getLongitude();
                 }
@@ -129,12 +131,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 tvLongitude.setText(String.valueOf(longitude));
 
                 try {
-                    String response = new AsyncPostRequest(Constants.SERVER_URL + Constants.GET_CUSTOMER, CodeRequestManager.getCustomer(tvContentName.getText().toString()))
-                            .execute()
-                            .get(29, TimeUnit.SECONDS);
+                    if (Internet.isAvailable(this)) {
+                        String response = new AsyncPostRequest(Constants.SERVER_URL + Constants.GET_CUSTOMER, CodeRequestManager.getCustomer(tvContentName.getText().toString()))
+                                .execute()
+                                .get(29, TimeUnit.SECONDS);
 
-                    JSONObject jsonResponse = new JSONObject(response);
-                    customer = new Pair(jsonResponse.getString("id"), jsonResponse.getString("name"));
+                        JSONObject jsonResponse = new JSONObject(response);
+                        customer = new Pair(jsonResponse.getString("id"), jsonResponse.getString("name"));
+                    }
                 } catch (InterruptedException | ExecutionException | TimeoutException | JSONException e) {
                     e.printStackTrace();
                 }
@@ -152,10 +156,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
     }
 
-    private String extractPhoneFromContent(String content){
-        if (content.startsWith("SMSTO:")){
-            return content.replace("SMSTO:","").replace(":","").trim();
-        }else {
+    private String extractPhoneFromContent(String content) {
+        if (content.startsWith("SMSTO:")) {
+            return content.replace("SMSTO:", "").replace(":", "").trim();
+        } else {
             return content;
         }
     }
