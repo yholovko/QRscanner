@@ -4,53 +4,32 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
-import android.content.BroadcastReceiver;
-import android.content.ContentValues;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.telephony.SmsManager;
-import android.telephony.TelephonyManager;
-import android.text.InputType;
 import android.text.format.Time;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class MainActivity extends Activity implements View.OnClickListener {
-    private static final String ACTION_SCAN = "com.google.zxing.client.android.SCAN";
-    private final String SERVER_URL = "http://test.ggcom.it";
-    private final String ADD_DATA = "/addData";
-
-    private AlertDialog.Builder builder;
-
     private GPSTracker gps;
     private double latitude;
     private double longitude;
+
+    private Pair customer;
 
     private TextView tvDate;
     private TextView tvTime;
@@ -94,23 +73,24 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.buttonSendSms:
                 String googleMapsLink = String.format("http://maps.google.com/maps?q=%s,%s", tvLatitude.getText().toString(), tvLongitude.getText().toString());
-                String messageContent = String.format("Ho controllato il tuo negozio sito in %s " +
-                                                      "il giorno %s " +
-                                                      "alle ore %s.Cordiali saluti Vigilantes ltd", googleMapsLink, tvDate.getText().toString(), tvTime.getText().toString());
-                sendSMS(extractPhoneFromContent(tvContentName.getText().toString()), messageContent);
+                String messageContent = String.format("Ho controllato il tuo negozio sito in %s il giorno %s alle ore %s.Cordiali saluti %s",
+                                        googleMapsLink, tvDate.getText().toString(), tvTime.getText().toString(), customer.second.toString());
+                sendSMS(tvContentName.getText().toString(), messageContent);
+                btnSendSms.setEnabled(false);
                 break;
             case R.id.buttonSendToServer:
                 try {
-                    String response = new AsyncPostRequest(SERVER_URL + ADD_DATA, CodeRequestManager.addData(tvDate.getText().toString(), tvTime.getText().toString(),
-                            tvLatitude.getText().toString(), tvLongitude.getText().toString()))
+                    String response = new AsyncPostRequest(Constants.SERVER_URL + Constants.ADD_DATA, CodeRequestManager.addData(tvDate.getText().toString(), tvTime.getText().toString(),
+                            tvLatitude.getText().toString(), tvLongitude.getText().toString(), customer.first.toString()))
                             .execute()
                             .get(29, TimeUnit.SECONDS);
 
                     JSONObject jsonResponse = new JSONObject(response);
-//                    String result = jsonResponse.getString("result");
-//                    if (result.equals("success")){
-//                        Toast.makeText(getBaseContext(), "Information sent", Toast.LENGTH_SHORT).show();
-//                    }
+                    int result = jsonResponse.getInt("result");
+                    if (result == 1){
+                        Toast.makeText(getBaseContext(), "Informazioni inviate", Toast.LENGTH_SHORT).show();
+                        btnSendToServer.setEnabled(false);
+                    }
                 } catch (InterruptedException | ExecutionException | JSONException | TimeoutException e) {
                     e.printStackTrace();
                 }
@@ -136,7 +116,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
                 tvDate.setText(now.year + ":" + (now.month+1) + ":" + now.monthDay);
                 tvTime.setText(now.hour+":"+now.minute+":"+now.second);
-                tvContentName.setText(intent.getStringExtra("SCAN_RESULT"));
+                tvContentName.setText(extractPhoneFromContent(intent.getStringExtra("SCAN_RESULT")));
 
                 if(gps.canGetLocation()) {
                     latitude = gps.getLatitude();
@@ -145,13 +125,24 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
                 tvLatitude.setText(String.valueOf(latitude));
                 tvLongitude.setText(String.valueOf(longitude));
+
+                try {
+                    String response = new AsyncPostRequest(Constants.SERVER_URL + Constants.GET_CUSTOMER, CodeRequestManager.getCustomer(tvContentName.getText().toString()))
+                            .execute()
+                            .get(29, TimeUnit.SECONDS);
+
+                    JSONObject jsonResponse = new JSONObject(response);
+                    customer = new Pair(jsonResponse.getString("id"), jsonResponse.getString("name"));
+                } catch (InterruptedException | ExecutionException | TimeoutException | JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
 
     private void scanQR() {
         try {
-            Intent intent = new Intent(ACTION_SCAN);
+            Intent intent = new Intent("com.google.zxing.client.android.SCAN");
             intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
             startActivityForResult(intent, 0);
         } catch (ActivityNotFoundException anfe) {
@@ -161,7 +152,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private String extractPhoneFromContent(String content){
         if (content.startsWith("SMSTO:")){
-            return content.replace("SMSTO:)","").replace(":","").trim();
+            return content.replace("SMSTO:","").replace(":","").trim();
         }else {
             return content;
         }
@@ -176,7 +167,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         Toast.makeText(getBaseContext(), "SMS inviato", Toast.LENGTH_SHORT).show();
     }
 
-    //alert dialog for downloadDialog
     private AlertDialog showDialog(final Activity act, CharSequence title, CharSequence message, CharSequence buttonYes, CharSequence buttonNo) {
         AlertDialog.Builder downloadDialog = new AlertDialog.Builder(act);
         downloadDialog.setTitle(title);
