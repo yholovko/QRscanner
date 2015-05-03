@@ -46,6 +46,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        License.check(this);
+
         gps = new GPSTracker(MainActivity.this, this);
         if (!gps.canGetLocation()){
             gps.showSettingsAlert();

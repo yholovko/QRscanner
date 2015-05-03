@@ -25,4 +25,11 @@ public class CodeRequestManager {
         return dataRequest;
     }
 
+    public static Map<String, String> checkLicense(String key) {
+        Map<String, String> dataRequest = new HashMap<>();
+
+        dataRequest.put("key", key);
+
+        return dataRequest;
+    }
 }
