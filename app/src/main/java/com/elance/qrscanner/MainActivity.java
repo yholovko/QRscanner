@@ -29,7 +29,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private double latitude;
     private double longitude;
 
-    private Pair customer;
+    private Pair customerIdCompanyName;
 
     private TextView tvDate;
     private TextView tvTime;
@@ -76,7 +76,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             case R.id.buttonSendSms:
                 String googleMapsLink = String.format("http://maps.google.com/maps?q=%s,%s", tvLatitude.getText().toString(), tvLongitude.getText().toString());
                 String messageContent = String.format("Ho controllato il tuo negozio sito in %s il giorno %s alle ore %s.Cordiali saluti %s",
-                        googleMapsLink, tvDate.getText().toString(), tvTime.getText().toString(), customer.second.toString());
+                        googleMapsLink, tvDate.getText().toString(), tvTime.getText().toString(), customerIdCompanyName.second.toString());
                 sendSMS(tvContentName.getText().toString(), messageContent);
                 btnSendSms.setEnabled(false);
                 break;
@@ -84,7 +84,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 try {
                     if (Internet.isAvailable(this)) {
                         String response = new AsyncPostRequest(Constants.SERVER_URL + Constants.ADD_DATA, CodeRequestManager.addData(tvDate.getText().toString(), tvTime.getText().toString(),
-                                tvLatitude.getText().toString(), tvLongitude.getText().toString(), customer.first.toString()))
+                                tvLatitude.getText().toString(), tvLongitude.getText().toString(), customerIdCompanyName.first.toString()))
                                 .execute()
                                 .get(29, TimeUnit.SECONDS);
 
@@ -137,7 +137,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                                 .get(29, TimeUnit.SECONDS);
 
                         JSONObject jsonResponse = new JSONObject(response);
-                        customer = new Pair(jsonResponse.getString("id"), jsonResponse.getString("name"));
+                        customerIdCompanyName = new Pair(jsonResponse.getString("id"), jsonResponse.getString("name"));
                     }
                 } catch (InterruptedException | ExecutionException | TimeoutException | JSONException e) {
                     e.printStackTrace();
