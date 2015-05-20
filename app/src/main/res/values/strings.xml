@@ -7,6 +7,7 @@
     <string name="qrcontent">Numero cliente: </string>
     <string name="latitude">Latitudine: </string>
     <string name="longitude">Longitudine: </string>
+    <string name="address">Indirizzo: </string>
 
     <string name="sendSms">Invia SMS</string>
     <string name="sendToServer">Invia dati al server</string>

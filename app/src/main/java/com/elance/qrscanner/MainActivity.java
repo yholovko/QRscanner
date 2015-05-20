@@ -36,6 +36,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private TextView tvContentName;
     private TextView tvLatitude;
     private TextView tvLongitude;
+    private TextView tvAddress;
 
     private Button btnSendSms;
     private Button btnSendToServer;
@@ -58,6 +59,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         tvContentName = (TextView) findViewById(R.id.textViewContentName);
         tvLatitude = (TextView) findViewById(R.id.textViewLatitude);
         tvLongitude = (TextView) findViewById(R.id.textViewLongitude);
+        tvAddress = (TextView) findViewById(R.id.textViewAddress);
         btnScan = (Button) findViewById(R.id.buttonScan);
         btnSendSms = (Button) findViewById(R.id.buttonSendSms);
         btnSendToServer = (Button) findViewById(R.id.buttonSendToServer);
@@ -129,6 +131,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
                 tvLatitude.setText(String.valueOf(latitude));
                 tvLongitude.setText(String.valueOf(longitude));
+                tvAddress.setText(gps.getStreetName());
 
                 try {
                     if (Internet.isAvailable(this)) {

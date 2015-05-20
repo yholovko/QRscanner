@@ -5,12 +5,18 @@ import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 public class GPSTracker extends Service implements LocationListener {
 
@@ -116,6 +122,28 @@ public class GPSTracker extends Service implements LocationListener {
         }
 
         return longitude;
+    }
+
+    public String getStreetName(){
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+
+        try {
+            List<Address> addresses = geocoder.getFromLocation(getLatitude(), getLongitude(), 1);
+
+            if (addresses != null) {
+                Address returnedAddress = addresses.get(0);
+                StringBuilder strReturnedAddress = new StringBuilder();
+                for (int i = 0; i < returnedAddress.getMaxAddressLineIndex(); i++) {
+                    strReturnedAddress.append(returnedAddress.getAddressLine(i)).append("");
+                }
+                return strReturnedAddress.toString();
+            } else {
+                return "No Address returned!";
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Canont get Address!";
+        }
     }
 
     public boolean canGetLocation() {
