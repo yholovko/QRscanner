@@ -86,7 +86,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 try {
                     if (Internet.isAvailable(this)) {
                         String response = new AsyncPostRequest(Constants.SERVER_URL + Constants.ADD_DATA, CodeRequestManager.addData(tvDate.getText().toString(), tvTime.getText().toString(),
-                                tvLatitude.getText().toString(), tvLongitude.getText().toString(), customerIdCompanyName.first.toString()))
+                                tvLatitude.getText().toString(), tvLongitude.getText().toString(), tvAddress.getText().toString(), customerIdCompanyName.first.toString()))
                                 .execute()
                                 .get(29, TimeUnit.SECONDS);
 

@@ -125,7 +125,7 @@ public class GPSTracker extends Service implements LocationListener {
     }
 
     public String getStreetName(){
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        Geocoder geocoder = new Geocoder(this, Locale.ITALIAN);
 
         try {
             List<Address> addresses = geocoder.getFromLocation(getLatitude(), getLongitude(), 1);
@@ -142,7 +142,7 @@ public class GPSTracker extends Service implements LocationListener {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return "Canont get Address!";
+            return "Cannot get Address!";
         }
     }
 
